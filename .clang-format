@@ -1,0 +1,40 @@
+---
+Language:        Cpp
+BasedOnStyle:    Microsoft
+# Do not break braces (use Attach style)
+BreakBeforeBraces: Attach
+# Do not break brace before else or while
+BraceWrapping:
+  AfterCaseLabel:  false
+  AfterClass:      false
+  AfterControlStatement: Never
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  BeforeWhile:     false
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+# Reference/Pointer alignment with type
+PointerAlignment: Left
+ReferenceAlignment: Left
+# Do not sort includes
+SortIncludes:    Never
+# Additional settings to match the style
+IndentWidth:     4
+TabWidth:        4
+UseTab:          ForIndentation
+ColumnLimit:     120
+IndentCaseLabels: false
+IndentPPDirectives: AfterHash
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+NamespaceIndentation: None
