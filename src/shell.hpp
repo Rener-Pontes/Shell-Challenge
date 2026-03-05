@@ -1,8 +1,10 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
+#include <vector>
 
-#define SIZE(arr) sizeof(arr) / sizeof(arr[0])
+namespace fs = std::filesystem;
 
 namespace shell {
 
@@ -10,6 +12,8 @@ namespace shell {
 		Success,
 		Failure,
 	};
+
+	std::vector<fs::directory_entry> getSystemPath();
 
 	namespace builtins {
 
