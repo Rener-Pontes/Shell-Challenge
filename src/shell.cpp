@@ -28,4 +28,34 @@ namespace shell {
 		return path_vector;
 	}
 
+	Command parseInput(const std::string_view& input) {
+		size_t pos = input.find_first_not_of(' ');
+		if (pos == npos) {
+			return {};
+		}
+
+		size_t end_pos = input.find_first_of(' ', pos);
+		std::string cmd{input.substr(pos, end_pos - pos)};
+
+		Args args;
+		std::string argument;
+		pos = input.find_first_not_of(' ', end_pos);
+		while(pos < input.length()) {
+			if (input[pos] == ' ') {
+				args.emplace_back(argument);
+				argument.clear();
+
+				pos = input.find_first_not_of(' ', pos);
+			} else {
+				argument.push_back(input[pos++]);
+			}
+		}
+
+		if (! argument.empty()) {
+			args.emplace_back(argument);
+		}
+
+		return {cmd, args};
+	}
+
 }
