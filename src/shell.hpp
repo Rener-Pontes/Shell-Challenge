@@ -1,8 +1,11 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
+#include <map>
 #include <string>
 #include <vector>
+
 
 namespace fs = std::filesystem;
 
@@ -18,6 +21,8 @@ namespace shell {
 	enum class ReturnCodes {
 		Success,
 		Failure,
+
+		Exit,
 	};
 
 	std::vector<fs::directory_entry> getSystemPath();
@@ -32,10 +37,14 @@ namespace shell {
 			"type",
 		};
 
-		// ReturnCodes exit();
-		ReturnCodes echo(const std::string& text);
-		ReturnCodes type(const std::string& command);
+		ReturnCodes echo(const Command& command);
+		ReturnCodes type(const Command& command);
 
+		inline const std::map<std::string, std::function<ReturnCodes(const Command& command)>> builtins_table = {
+			{"exit", [](const Command& command)->ReturnCodes { return ReturnCodes::Exit; }},
+			{"echo", echo},
+			{"type", type},
+		};
 	}
 
 } // namespace shell

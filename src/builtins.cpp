@@ -2,17 +2,16 @@
 
 #include <filesystem>
 #include <iostream>
-#include <iterator>
 #include <vector>
 
 namespace shell::builtins {
 
-	// ReturnCodes exit() {
-	//
-	// }
-	
-	ReturnCodes echo(const std::string& text) {
-		std::cout << text << std::endl;
+	ReturnCodes echo(const Command& command) {
+		std::cout << command.args[0];
+		for (size_t i = 1; i < command.args.size(); i++) {
+			std::cout << ' ' << command.args[i];
+		}
+		std::cout << std::endl;
 
 		return ReturnCodes::Success;
 	}
