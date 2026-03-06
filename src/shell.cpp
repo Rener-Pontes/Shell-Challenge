@@ -42,15 +42,44 @@ namespace shell {
 
 		Args args;
 		std::string argument;
+		InputState state = InputState::None;
 		pos = input.find_first_not_of(' ', end_pos);
 		while(pos < input.length()) {
-			if (input[pos] == ' ') {
-				args.emplace_back(argument);
-				argument.clear();
+			switch (input[pos]) {
+				case ' ': {
+					if (state != InputState::None) {
+						argument.push_back(' ');
+						pos++;
+						continue;
+					}
 
-				pos = input.find_first_not_of(' ', pos);
-			} else {
-				argument.push_back(input[pos++]);
+					args.emplace_back(argument);
+					args.emplace_back(" ");
+					argument.clear();
+
+					pos = input.find_first_not_of(' ', pos);
+					break;
+				};
+				case '\'': {
+					state = state == InputState::None ?
+						InputState::SimpleQuotes : InputState::None;
+
+					if (state == InputState::SimpleQuotes && ! argument.empty()) {
+						args.push_back(argument);
+						argument.clear();
+					}
+
+					argument.push_back('\'');
+					pos++;
+
+					if (state == InputState::None) {
+						args.push_back(argument);
+						argument.clear();
+					}
+					break;
+				}
+				default:
+					argument.push_back(input[pos++]);
 			}
 		}
 

@@ -25,6 +25,11 @@ namespace shell {
 		Exit,
 	};
 
+	enum class InputState {
+		None,
+		SimpleQuotes
+	};
+
 	std::vector<fs::directory_entry> getSystemPath();
 	Command parseInput(const std::string_view& input);
 	ReturnCodes run(Command& command);
