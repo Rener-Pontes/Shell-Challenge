@@ -1,8 +1,9 @@
 #include "shell.hpp"
 
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include <vector>
+#include <print>
 
 namespace shell::builtins {
 
@@ -41,6 +42,16 @@ namespace shell::builtins {
 
 	ReturnCodes cd(const Command &command) {
 		fs::path destination{command.args[0]};
+
+		if (std::string dest_str = destination.string(); dest_str.contains('~')) {
+			const char* home_var = std::getenv("HOME");
+			if (! home_var) {
+				return ReturnCodes::Failure;
+			}
+			
+			dest_str.replace(dest_str.find('~'), 1, home_var);
+			destination = dest_str;
+		}
 
 		if (! fs::exists(destination)) {
 			std::cout << "cd: " << destination.c_str() << ": No such file or directory" << std::endl;
