@@ -33,4 +33,10 @@ namespace shell::builtins {
 		return ReturnCodes::Failure;
 	}
 
+	ReturnCodes pwd(const Command& command) {
+		std::cout << fs::current_path().string() << std::endl;
+
+		return ReturnCodes::Success;
+	}
+
 }
