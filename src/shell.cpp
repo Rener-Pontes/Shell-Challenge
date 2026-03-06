@@ -61,6 +61,28 @@ namespace shell {
 		return {cmd, args};
 	}
 
+	ReturnCodes run(Command& command) {
+		if (builtins::builtins_table.contains(command.cmd)) {
+			return builtins::builtins_table.at(command.cmd)(command);
+		}
+
+		if (fs::path executable = returnExecutablePath(command.cmd); ! executable.empty()) {
+			std::stringstream cmd{};
+
+			cmd << command.cmd;
+			for (const std::string& arg : command.args) {
+				cmd << ' ' << arg;
+			}
+
+			system(cmd.str().c_str());
+			return ReturnCodes::Success;
+		}
+
+		std::cout << command.cmd << ": command not found" << std::endl;
+		return ReturnCodes::Failure;
+	}
+
+
 	fs::path returnExecutablePath(const std::string& command) {
 		std::vector<fs::directory_entry> path = getSystemPath();
 		for (const auto& dir : path) {
