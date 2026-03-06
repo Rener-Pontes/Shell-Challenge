@@ -42,12 +42,14 @@ namespace shell {
 		ReturnCodes echo(const Command& command);
 		ReturnCodes type(const Command& command);
 		ReturnCodes pwd(const Command& command);
+		ReturnCodes cd(const Command& command);
 
 		inline const std::map<std::string, std::function<ReturnCodes(const Command& command)>> builtins_table = {
 			{"exit", [](const Command& command)->ReturnCodes { return ReturnCodes::Exit; }},
 			{"echo", echo},
 			{"type", type},
 			{"pwd",  pwd},
+			{"cd",   cd},
 		};
 	}
 

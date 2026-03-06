@@ -39,4 +39,18 @@ namespace shell::builtins {
 		return ReturnCodes::Success;
 	}
 
+	ReturnCodes cd(const Command &command) {
+		fs::path destination{command.args[0]};
+
+		if (! fs::exists(destination)) {
+			std::cout << "cd: " << destination.c_str() << ": No such file or directory" << std::endl;
+			return ReturnCodes::Failure;
+		}
+		if (! fs::is_directory(destination)) return ReturnCodes::Failure;
+
+		fs::current_path(destination);
+
+		return ReturnCodes::Success;
+	}
+
 }
