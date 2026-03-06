@@ -3,14 +3,31 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include <print>
 
 namespace shell::builtins {
 
 	ReturnCodes echo(const Command& command) {
-		std::cout << command.args[0];
-		for (size_t i = 1; i < command.args.size(); i++) {
-			std::cout << ' ' << command.args[i];
+		std::function ignore = [](std::string text) {
+			const std::string_view ignore_list = "'";
+			InputState state;
+
+			for (size_t i = 0; i < text.length(); i++) {
+				char ch = text[i];
+				if (! ignore_list.contains(ch)) continue;
+
+				switch (ch) {
+					case '\'':
+						text.erase(i, 1);
+						i--;
+						break;
+				}
+			}
+
+			return text;
+		};
+
+		for (const std::string& arg : command.args) {
+			std::cout << ignore(arg);
 		}
 		std::cout << std::endl;
 
