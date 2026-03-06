@@ -30,7 +30,7 @@ namespace shell::builtins {
 			return ReturnCodes::Success;
 		}
 
-		std::cout << cmd << ": not found" << std::endl;
+		std::cerr << cmd << ": not found" << std::endl;
 		return ReturnCodes::Failure;
 	}
 
@@ -54,7 +54,7 @@ namespace shell::builtins {
 		}
 
 		if (! fs::exists(destination)) {
-			std::cout << "cd: " << destination.c_str() << ": No such file or directory" << std::endl;
+			std::cerr << "cd: " << destination.c_str() << ": No such file or directory" << std::endl;
 			return ReturnCodes::Failure;
 		}
 		if (! fs::is_directory(destination)) return ReturnCodes::Failure;

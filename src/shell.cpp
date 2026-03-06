@@ -78,7 +78,7 @@ namespace shell {
 			return ReturnCodes::Success;
 		}
 
-		std::cout << command.cmd << ": command not found" << std::endl;
+		std::cerr << command.cmd << ": command not found" << std::endl;
 		return ReturnCodes::Failure;
 	}
 
