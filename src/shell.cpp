@@ -1,6 +1,9 @@
 #include "shell.hpp"
 
+#include <cstdlib>
 #include <filesystem>
+#include <iostream>
+#include <sstream>
 #include <string_view>
 #include <vector>
 
@@ -58,4 +61,23 @@ namespace shell {
 		return {cmd, args};
 	}
 
+	fs::path returnExecutablePath(const std::string& command) {
+		std::vector<fs::directory_entry> path = getSystemPath();
+		for (const auto& dir : path) {
+			using fs::perms;
+
+			fs::path file_path = dir.path() / command;
+			if (! fs::exists(file_path)) continue;
+
+			auto file_perms = fs::status(file_path).permissions();
+			const fs::perms exec_perms = perms::owner_exec | perms::group_exec | perms::others_exec;
+			if (perms::none == (file_perms & exec_perms)) continue;
+
+			return file_path;
+		}
+
+		return "";
+	}
+
 }
+ 

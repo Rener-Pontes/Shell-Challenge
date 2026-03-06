@@ -16,33 +16,20 @@ namespace shell::builtins {
 		return ReturnCodes::Success;
 	}
 
-	ReturnCodes type(const std::string& command) {
-		for (auto iter = std::begin(builtins); iter != std::end(builtins); iter++) {
-			if (*iter != command)
-				continue;
+	ReturnCodes type(const Command& command) {
+		const std::string& cmd = command.args[0];
+		if (builtins_table.contains(cmd)){
+			std::cout << cmd << " is a shell builtin" << std::endl;
+			return ReturnCodes::Success;
 
-			std::cout << command << " is a shell builtin" << std::endl;
+		}
+
+		if (fs::path file_path = returnExecutablePath(cmd); ! file_path.empty()) {
+			std::cout << cmd << " is " << file_path.string() << std::endl;
 			return ReturnCodes::Success;
 		}
 
-		std::vector<fs::directory_entry> path = getSystemPath();
-		for (const auto& dir : path) {
-			using fs::perms;
-
-			fs::path file_path = dir.path() / command;
-			if (! fs::exists(file_path)) continue;
-
-			auto file_perms = fs::status(file_path).permissions();
-			const fs::perms exec_perms = perms::owner_exec | perms::group_exec | perms::others_exec;
-			if (perms::none == (file_perms & exec_perms)) continue;
-
-
-			std::cout << command << " is " << file_path.string() << std::endl;
-			return ReturnCodes::Success;
-		}
-
-
-		std::cout << command << ": not found" << std::endl;
+		std::cout << cmd << ": not found" << std::endl;
 		return ReturnCodes::Failure;
 	}
 

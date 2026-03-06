@@ -26,8 +26,9 @@ namespace shell {
 	};
 
 	std::vector<fs::directory_entry> getSystemPath();
-
 	Command parseInput(const std::string_view& input);
+
+	fs::path returnExecutablePath(const std::string& command);
 
 	namespace builtins {
 
