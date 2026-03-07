@@ -109,6 +109,19 @@ namespace shell {
 
 					break;
 				}
+				case '\\': {
+					if (state != InputState::None) {
+						argument.push_back('\\');
+						pos++;
+						break;
+					}
+
+					argument.push_back('\\');
+					argument.push_back(input[pos+1]);
+					pos += 2;
+
+					break;
+				}
 				default:
 					argument.push_back(input[pos++]);
 			}

@@ -8,7 +8,7 @@ namespace shell::builtins {
 
 	ReturnCodes echo(const Command& command) {
 		std::function ignore = [](std::string text) {
-			const std::string_view ignore_list = "\"'";
+			const std::string_view ignore_list = "\"'\\";
 			InputState state = InputState::None;
 
 			for (size_t i = 0; i < text.length(); i++) {
@@ -38,6 +38,12 @@ namespace shell::builtins {
 
 						text.erase(i, 1);
 						i--;
+						break;
+					}
+					case '\\': {
+						if (state != InputState::None) break;
+
+						text.erase(i, 1);
 						break;
 					}
 				}
