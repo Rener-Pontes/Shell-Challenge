@@ -39,14 +39,9 @@ namespace shell {
 		if (pos == npos) {
 			return {};
 		}
-
-		size_t end_pos = input.find_first_of(' ', pos);
-		std::string cmd{input.substr(pos, end_pos - pos)};
-
 		Args args;
 		std::string argument;
 		InputState state = InputState::None;
-		pos = input.find_first_not_of(' ', end_pos);
 		while(pos < input.length()) {
 			switch (input[pos]) {
 				case ' ': {
@@ -57,7 +52,6 @@ namespace shell {
 					}
 
 					args.emplace_back(argument);
-					args.emplace_back(" ");
 					argument.clear();
 
 					pos = input.find_first_not_of(' ', pos);
@@ -73,9 +67,7 @@ namespace shell {
 					state = state == InputState::None ?
 						InputState::SimpleQuotes : InputState::None;
 
-					argument.push_back('\'');
 					pos++;
-
 					break;
 				}
 				case '\"': {
@@ -88,9 +80,7 @@ namespace shell {
 					state = state == InputState::None ?
 						InputState::DoubleQuotes : InputState::None;
 
-					argument.push_back('\"');
 					pos++;
-
 					break;
 				}
 				case '\\': {
@@ -100,7 +90,6 @@ namespace shell {
 						break;
 					}
 
-					argument.push_back('\\');
 					argument.push_back(input[pos+1]);
 					pos += 2;
 
@@ -114,6 +103,9 @@ namespace shell {
 		if (! argument.empty()) {
 			args.emplace_back(argument);
 		}
+
+		std::string cmd = args.front();
+		args.erase(args.begin());
 
 		return {cmd, args};
 	}
