@@ -91,7 +91,7 @@ namespace shell {
 					break;
 				}
 				case '\\': {
-					if (state != InputState::None) {
+					if (state == InputState::SimpleQuotes) {
 						argument.push_back('\\');
 						pos++;
 						break;

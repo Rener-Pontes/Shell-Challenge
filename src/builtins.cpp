@@ -41,7 +41,7 @@ namespace shell::builtins {
 						break;
 					}
 					case '\\': {
-						if (state != InputState::None) break;
+						if (state == InputState::SimpleQuotes) break;
 
 						text.erase(i, 1);
 						break;
