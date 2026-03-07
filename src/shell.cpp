@@ -70,18 +70,9 @@ namespace shell {
 					state = state == InputState::None ?
 						InputState::SimpleQuotes : InputState::None;
 
-					if (state == InputState::SimpleQuotes && ! argument.empty()) {
-						args.push_back(argument);
-						argument.clear();
-					}
-
 					argument.push_back('\'');
 					pos++;
 
-					if (state == InputState::None) {
-						args.push_back(argument);
-						argument.clear();
-					}
 					break;
 				}
 				case '\"': {
@@ -94,18 +85,8 @@ namespace shell {
 					state = state == InputState::None ?
 						InputState::DoubleQuotes : InputState::None;
 
-					if (state == InputState::SimpleQuotes && ! argument.empty()) {
-						args.push_back(argument);
-						argument.clear();
-					}
-
 					argument.push_back('\"');
 					pos++;
-
-					if (state == InputState::None) {
-						args.push_back(argument);
-						argument.clear();
-					}
 
 					break;
 				}
