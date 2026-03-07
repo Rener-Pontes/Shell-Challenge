@@ -1,9 +1,12 @@
 #include "shell.hpp"
 
+#include <sched.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include <sstream>
 #include <string_view>
 #include <vector>
 
@@ -121,14 +124,24 @@ namespace shell {
 		}
 
 		if (fs::path executable = returnExecutablePath(command.cmd); ! executable.empty()) {
-			std::stringstream cmd{};
 
-			cmd << command.cmd;
-			for (const std::string& arg : command.args) {
-				cmd << ' ' << arg;
+			pid_t pid = fork();
+			if (pid == 0) {
+				std::vector<char*> argv;
+				argv.reserve(command.args.size()+2);
+
+				argv.emplace_back(const_cast<char*>(command.cmd.c_str()));
+				for (std::string& arg : command.args) {
+					argv.emplace_back(const_cast<char*>(arg.c_str()));
+				}
+				argv.emplace_back(nullptr);
+
+				execv(executable.c_str(), argv.data());
+				_exit(0);
+			} else {
+				int stats;
+				waitpid(pid, &stats, 0);
 			}
-
-			system(cmd.str().c_str());
 			return ReturnCodes::Success;
 		}
 
