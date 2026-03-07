@@ -61,6 +61,12 @@ namespace shell {
 					break;
 				};
 				case '\'': {
+					if (state == InputState::DoubleQuotes){
+						argument.push_back('\'');
+						pos++;
+						break;
+					}
+
 					state = state == InputState::None ?
 						InputState::SimpleQuotes : InputState::None;
 
@@ -76,6 +82,31 @@ namespace shell {
 						args.push_back(argument);
 						argument.clear();
 					}
+					break;
+				}
+				case '\"': {
+					if (state == InputState::SimpleQuotes){
+						argument.push_back('\"');
+						pos++;
+						break;
+					}
+
+					state = state == InputState::None ?
+						InputState::DoubleQuotes : InputState::None;
+
+					if (state == InputState::SimpleQuotes && ! argument.empty()) {
+						args.push_back(argument);
+						argument.clear();
+					}
+
+					argument.push_back('\"');
+					pos++;
+
+					if (state == InputState::None) {
+						args.push_back(argument);
+						argument.clear();
+					}
+
 					break;
 				}
 				default:

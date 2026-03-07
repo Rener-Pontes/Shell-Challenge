@@ -27,7 +27,8 @@ namespace shell {
 
 	enum class InputState {
 		None,
-		SimpleQuotes
+		SimpleQuotes,
+		DoubleQuotes,
 	};
 
 	std::vector<fs::directory_entry> getSystemPath();
