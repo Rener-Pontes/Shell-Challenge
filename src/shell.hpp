@@ -8,12 +8,25 @@
 
 namespace fs = std::filesystem;
 
+inline const size_t npos = std::string::npos;
+
 namespace shell {
+
+	struct Redirection {
+		enum class Target { None, Stdin, Stdout, Stderr };
+		enum class Mode { None, Truncate, Append };
+
+		int fd_output = -1;
+		Target target = Target::None;
+		Mode mode = Mode::None;
+	};
 
 	using Args = std::vector<std::string>;
 	struct Command {
 		std::string cmd;
 		Args args;
+
+		Redirection redirection;
 	};
 
 	enum class ReturnCodes {
