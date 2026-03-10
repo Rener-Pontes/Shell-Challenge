@@ -1,14 +1,5 @@
 #include "shell.hpp"
 
-#include <sched.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#include <cstdlib>
-#include <filesystem>
-#include <iostream>
-#include <string_view>
-#include <vector>
 
 const size_t npos = std::string::npos;
 
@@ -34,111 +25,115 @@ namespace shell {
 		return path_vector;
 	}
 
-	Command parseInput(const std::string_view& input) {
+	Args parseInput(const std::string_view& input) {
+		size_t input_length = input.length();
+		if (input_length == 0) {
+			return {};
+		}
 		size_t pos = input.find_first_not_of(' ');
 		if (pos == npos) {
 			return {};
 		}
+
 		Args args;
 		std::string argument;
 		InputState state = InputState::None;
-		while(pos < input.length()) {
-			switch (input[pos]) {
-				case ' ': {
-					if (state != InputState::None) {
-						argument.push_back(' ');
-						pos++;
-						continue;
+
+
+		for (; pos < input_length; pos++) {
+			char ch = input[pos];
+			char explicit_redirection = '\0';
+
+			switch (ch) {
+				case ' ':
+					if (state != InputState::None)
+						break;
+
+					if (! argument.empty()) {
+						args.emplace_back(argument);
+						argument.clear();
+					}
+
+					continue;
+				case '\'':
+					if (state == InputState::DoubleQuotes)
+						break;
+
+					state = state == InputState::SimpleQuotes ?
+							InputState::None : InputState::SimpleQuotes;
+					continue;
+				case '\"':
+					if (state == InputState::SimpleQuotes)
+						break;
+
+					state = state == InputState::DoubleQuotes ?
+							InputState::None : InputState::DoubleQuotes;
+					continue;
+				case '\\':
+					if (state == InputState::SimpleQuotes)
+						break;
+					
+					if (pos+1 < input.length())
+						argument.push_back(input[pos+1]);
+					pos++; // In theory, one more char was consumed
+					continue;
+				case '1':
+				case '2':
+					if (pos+1 >= input_length || input[pos+1] != '>')
+						break;
+
+					explicit_redirection = ch;
+				case '>':
+					if (state != InputState::None)
+						break;
+
+					if (! argument.empty()) {
+						args.emplace_back(argument);
+						argument.clear();
+					}
+					if (explicit_redirection != '\0') {
+						argument.push_back(ch);
+						pos++; // Consumed the target fd
+					}
+					
+					argument.push_back('>');
+					if (pos + 1 < input_length && input[pos+1] == '>') {
+						argument.push_back('>');
 					}
 
 					args.emplace_back(argument);
 					argument.clear();
 
-					pos = input.find_first_not_of(' ', pos);
-					break;
-				};
-				case '\'': {
-					if (state == InputState::DoubleQuotes){
-						argument.push_back('\'');
-						pos++;
-						break;
-					}
-
-					state = state == InputState::None ?
-						InputState::SimpleQuotes : InputState::None;
-
-					pos++;
-					break;
-				}
-				case '\"': {
-					if (state == InputState::SimpleQuotes){
-						argument.push_back('\"');
-						pos++;
-						break;
-					}
-
-					state = state == InputState::None ?
-						InputState::DoubleQuotes : InputState::None;
-
-					pos++;
-					break;
-				}
-				case '\\': {
-					if (state == InputState::SimpleQuotes) {
-						argument.push_back('\\');
-						pos++;
-						break;
-					}
-
-					argument.push_back(input[pos+1]);
-					pos += 2;
-
-					break;
-				}
-				default:
-					argument.push_back(input[pos++]);
+					continue;
 			}
+
+			argument.push_back(ch);
 		}
 
 		if (! argument.empty()) {
 			args.emplace_back(argument);
 		}
 
-		std::string cmd = args.front();
-		args.erase(args.begin());
+		return {};
+	}
 
-		return {cmd, args};
+	Command parseArguments(const Args& args) {
+		size_t args_size = args.size();
+		if (args_size == 0) {
+			return {};
+		}
+
+		Command cmd{.cmd = args[0]};
+
+		for (size_t i = 0; i < args_size; i++) {
+			
+		}
+
+		return cmd;
 	}
 
 	ReturnCodes run(Command& command) {
-		if (builtins::builtins_table.contains(command.cmd)) {
-			return builtins::builtins_table.at(command.cmd)(command);
-		}
-
-		if (fs::path executable = returnExecutablePath(command.cmd); ! executable.empty()) {
-
-			pid_t pid = fork();
-			if (pid == 0) {
-				std::vector<char*> argv;
-				argv.reserve(command.args.size()+2);
-
-				argv.emplace_back(const_cast<char*>(command.cmd.c_str()));
-				for (std::string& arg : command.args) {
-					argv.emplace_back(const_cast<char*>(arg.c_str()));
-				}
-				argv.emplace_back(nullptr);
-
-				execv(executable.c_str(), argv.data());
-				_exit(0);
-			} else {
-				int stats;
-				waitpid(pid, &stats, 0);
-			}
-			return ReturnCodes::Success;
-		}
-
-		std::cerr << command.cmd << ": command not found" << std::endl;
-		return ReturnCodes::Failure;
+		return ReturnCodes::Success;
 	}
 
 

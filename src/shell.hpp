@@ -6,13 +6,11 @@
 #include <string>
 #include <vector>
 
-
 namespace fs = std::filesystem;
 
 namespace shell {
 
 	using Args = std::vector<std::string>;
-
 	struct Command {
 		std::string cmd;
 		Args args;
@@ -32,7 +30,8 @@ namespace shell {
 	};
 
 	std::vector<fs::directory_entry> getSystemPath();
-	Command parseInput(const std::string_view& input);
+	Args parseInput(const std::string_view& input);
+	Command parseArguments(const Args& args);
 	ReturnCodes run(Command& command);
 
 	fs::path returnExecutablePath(const std::string& command);
