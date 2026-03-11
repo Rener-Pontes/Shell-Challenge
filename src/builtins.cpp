@@ -7,6 +7,10 @@
 namespace shell::builtins {
 
 	ReturnCodes echo(const Command& command) {
+		if (command.args.size() == 0) {
+			return ReturnCodes::Success;
+		}
+
 		std::cout << command.args[0];
 		for (size_t i = 1; i < command.args.size(); i++)
 			std::cout << ' ' << command.args[i];
