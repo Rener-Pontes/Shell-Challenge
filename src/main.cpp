@@ -13,7 +13,8 @@ int main() {
 
 		std::string input;
 		std::getline(std::cin, input);
-		shell::Command command = shell::parseInput(input);
+		shell::Args parsed_args = shell::parseInput(input);
+		shell::Command command = shell::parseArguments(parsed_args);
 
 		shell::ReturnCodes ret = shell::run(command);
 		if (ret == shell::ReturnCodes::Exit){

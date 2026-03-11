@@ -1,7 +1,10 @@
 #include "shell.hpp"
 
+#include <sys/wait.h>
+#include <unistd.h>
 
-const size_t npos = std::string::npos;
+#include <iostream>
+
 
 namespace shell {
 
@@ -25,115 +28,58 @@ namespace shell {
 		return path_vector;
 	}
 
-	Args parseInput(const std::string_view& input) {
-		size_t input_length = input.length();
-		if (input_length == 0) {
-			return {};
-		}
-		size_t pos = input.find_first_not_of(' ');
-		if (pos == npos) {
-			return {};
-		}
-
-		Args args;
-		std::string argument;
-		InputState state = InputState::None;
-
-
-		for (; pos < input_length; pos++) {
-			char ch = input[pos];
-			char explicit_redirection = '\0';
-
-			switch (ch) {
-				case ' ':
-					if (state != InputState::None)
-						break;
-
-					if (! argument.empty()) {
-						args.emplace_back(argument);
-						argument.clear();
-					}
-
-					continue;
-				case '\'':
-					if (state == InputState::DoubleQuotes)
-						break;
-
-					state = state == InputState::SimpleQuotes ?
-							InputState::None : InputState::SimpleQuotes;
-					continue;
-				case '\"':
-					if (state == InputState::SimpleQuotes)
-						break;
-
-					state = state == InputState::DoubleQuotes ?
-							InputState::None : InputState::DoubleQuotes;
-					continue;
-				case '\\':
-					if (state == InputState::SimpleQuotes)
-						break;
-					
-					if (pos+1 < input.length())
-						argument.push_back(input[pos+1]);
-					pos++; // In theory, one more char was consumed
-					continue;
-				case '1':
-				case '2':
-					if (pos+1 >= input_length || input[pos+1] != '>')
-						break;
-
-					explicit_redirection = ch;
-				case '>':
-					if (state != InputState::None)
-						break;
-
-					if (! argument.empty()) {
-						args.emplace_back(argument);
-						argument.clear();
-					}
-					if (explicit_redirection != '\0') {
-						argument.push_back(ch);
-						pos++; // Consumed the target fd
-					}
-					
-					argument.push_back('>');
-					if (pos + 1 < input_length && input[pos+1] == '>') {
-						argument.push_back('>');
-					}
-
-					args.emplace_back(argument);
-					argument.clear();
-
-					continue;
+	ReturnCodes run(Command& command) {
+		if (builtins::builtins_table.contains(command.cmd)) {
+			int target = -1,
+				original_target = -1;
+			if (command.redirection.fd_output != -1) {
+				target = command.redirection.target == Redirection::Target::Stdout ?
+					STDOUT_FILENO : STDERR_FILENO;
+				original_target = dup(target);
+				dup2(command.redirection.fd_output, target);
+				close(command.redirection.fd_output);
 			}
 
-			argument.push_back(ch);
+			ReturnCodes ret_code = builtins::builtins_table.at(command.cmd)(command);
+
+			if (command.redirection.fd_output != -1) {
+				dup2(original_target, target);
+				close(original_target);
+			}
+
+			return ret_code;
 		}
 
-		if (! argument.empty()) {
-			args.emplace_back(argument);
+		if (fs::path executable = returnExecutablePath(command.cmd); ! executable.empty()) {
+			pid_t pid = fork();
+			if (pid == 0) {
+				if (command.redirection.fd_output != -1) {
+					int target = command.redirection.target == Redirection::Target::Stdout ?
+							STDOUT_FILENO : STDERR_FILENO;
+					dup2(command.redirection.fd_output, target);
+					close(command.redirection.fd_output);
+				}
+
+				std::vector<char*> argv;
+				argv.reserve(command.args.size()+2);
+				argv.emplace_back(const_cast<char*>(command.cmd.c_str()));
+				for (std::string& arg : command.args) {
+					argv.emplace_back(const_cast<char*>(arg.c_str()));
+				}
+				argv.emplace_back(nullptr);
+
+				execv(executable.c_str(), argv.data());
+				_exit(0);
+			} else {
+				int stats;
+				waitpid(pid, &stats, 0);
+			}
+			return ReturnCodes::Success;
 		}
 
-		return {};
-	}
 
-	Command parseArguments(const Args& args) {
-		size_t args_size = args.size();
-		if (args_size == 0) {
-			return {};
-		}
-
-		Command cmd{.cmd = args[0]};
-
-		for (size_t i = 0; i < args_size; i++) {
-			
-		}
-
-		return cmd;
-	}
-
-	ReturnCodes run(Command& command) {
-		return ReturnCodes::Success;
+		std::cerr << command.cmd << ": command not found" << std::endl;
+		return ReturnCodes::Failure;
 	}
 
 
